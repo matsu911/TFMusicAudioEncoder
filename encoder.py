@@ -28,25 +28,26 @@ def next_batch(c_batch, batch_size, sess):
 def create_model():
     l2 = 0.0001
 
-    inputs = 12348
+    input_size = 12348
     hidden_1_size = 8400
     hidden_2_size = 3440
     hidden_3_size = 2800
 
-    X = tf.keras.Input(shape=(None, inputs))
+    inputs = tf.keras.Input(shape=(None, input_size))
 
     autoencoder_dnn = partial(layers.Dense,
                               activation = tf.nn.elu,
                               kernel_initializer = initializers.VarianceScaling(),
                               kernel_regularizer = tf.keras.regularizers.l2(l2))
 
-    hidden_1 = autoencoder_dnn(hidden_1_size)(X)
-    hidden_2 = autoencoder_dnn(hidden_2_size)(hidden_1)
-    hidden_4 = autoencoder_dnn(hidden_3_size)(hidden_2)
-    hidden_5 = autoencoder_dnn(hidden_2_size)(hidden_4)
-    outputs =  autoencoder_dnn(inputs, activation=None)(hidden_5)
+    X = autoencoder_dnn(hidden_1_size)(inputs)
+    X = autoencoder_dnn(hidden_2_size)(X)
+    X = autoencoder_dnn(hidden_3_size)(X)
+    X = autoencoder_dnn(hidden_2_size)(X)
+    X = autoencoder_dnn(hidden_1_size)(X)
+    outputs = autoencoder_dnn(input_size, activation=None)(X)
 
-    return tf.keras.Model(inputs=X, outputs=outputs)
+    return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
 def main():
