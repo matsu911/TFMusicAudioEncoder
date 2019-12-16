@@ -11,6 +11,28 @@ DATA_FILES_WAV = 'audio_wav'
 file_arr = []
 curr_batch = 0
 
+def _bytes_feature(value):
+    """string / byte 型から byte_list を返す"""
+    if isinstance(value, type(tf.constant(0))):
+        value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+def audio_example(audio_string):
+    feature = {
+        'audio_raw': _bytes_feature(audio_string),
+    }
+
+    return tf.train.Example(features=tf.train.Features(feature=feature))
+
+def dump_records():
+    audio_files = [file for file in iglob(DATA_FILES_WAV +'/*.wav')]
+    record_file = 'audio.tfrecords'
+    with tf.io.TFRecordWriter(record_file) as writer:
+        for filename in audio_files:
+            audio_string = open(filename, 'rb').read()
+            tf_example = audio_example(audio_string)
+            writer.write(tf_example.SerializeToString())
+
 def convert_mp3_to_wav():
     index = 0
     for file in iglob(DATA_FILES_MP3 + '/*.mp3'):
