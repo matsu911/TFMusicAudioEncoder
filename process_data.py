@@ -32,7 +32,7 @@ def get_next_batch(curr_batch, songs_per_batch, sess):
     start_position = curr_batch * songs_per_batch
     end_position = start_position + songs_per_batch
     for idx in range(start_position, end_position):
-        audio_binary = tf.read_file(file_arr[idx])
+        audio_binary = tf.io.read_file(file_arr[idx])
         wav_decoder = tf.audio.decode_wav(
             audio_binary,
             desired_channels=2)
