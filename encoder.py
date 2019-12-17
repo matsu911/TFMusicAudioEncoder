@@ -49,6 +49,11 @@ def create_model():
 
     return tf.keras.Model(inputs=inputs, outputs=outputs)
 
+@tf.function
+def loss_fn(X, Y):
+    reconstruction_loss = tf.reduce_mean(tf.square(Y - X))
+    reg_loss = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
+    return tf.add_n([reconstruction_loss] + reg_loss)
 
 def main():
     process_data.process_wav()
@@ -72,35 +77,34 @@ def main():
     # reg_loss = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
     # loss = tf.add_n([reconstruction_loss] + reg_loss)
 
-    def loss_fn(X, Y):
-        reconstruction_loss = tf.reduce_mean(tf.square(Y - X))
-        reg_loss = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
-        return tf.add_n([reconstruction_loss] + reg_loss)
-
     optimizer = tf.keras.optimizers.Adam(lr)
 
     model.summary()
     model.compile(
         optimizer=optimizer,
         loss=loss_fn,
-        metrics=['acc']
+        # metrics=['acc']
     )
 
-    # dataset = tf.data.TFRecordDataset(filenames = ['./audio.tfrecords'])
+    n_batch = 50
+    input_size = 12348
 
-    # raw_example = next(iter(dataset))
-    # parsed = tf.train.Example.FromString(raw_example.numpy())
-    # feature = parsed.features.feature
-    # audio_raw = feature['audio_raw'].bytes_list.value[0]
-    # audio = tf.audio.decode_wav(audio_raw)
-    # sample_rate = audio.sample_rate
-    # audio = audio.audio.numpy()
+    dataset = tf.data.TFRecordDataset(filenames = ['./audio.tfrecords'])
 
-    # wav_arr_ch1.append(rfft(audio[:,0]))
-    # wav_arr_ch2.append(rfft(audio[:,1]))
+    raw_example = next(iter(dataset))
+    parsed = tf.train.Example.FromString(raw_example.numpy())
+    feature = parsed.features.feature
+    audio_raw = feature['audio_raw'].bytes_list.value[0]
+    audio = tf.audio.decode_wav(audio_raw)
+    sample_rate = audio.sample_rate
+    audio = audio.audio.numpy()
 
-    # wav_arr_ch1, wav_arr_ch2, sample_rate
+    data = np.hstack([audio[:,0], audio[:,1]])
+    data = data[:(input_size*(data.shape[0]//input_size))].reshape((1, (data.shape[0]//input_size), input_size))
+    ds = tf.data.Dataset.from_tensor_slices((data, data))
+    # ds = tf.data.Dataset.from_tensor_slices((data, data))
 
+    model.fit(ds.batch(1), epochs=3)
 
     # model.fit(data, labels, epochs=10, batch_size=32)
 
