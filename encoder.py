@@ -86,6 +86,22 @@ def main():
         metrics=['acc']
     )
 
+    # dataset = tf.data.TFRecordDataset(filenames = ['./audio.tfrecords'])
+
+    # raw_example = next(iter(dataset))
+    # parsed = tf.train.Example.FromString(raw_example.numpy())
+    # feature = parsed.features.feature
+    # audio_raw = feature['audio_raw'].bytes_list.value[0]
+    # audio = tf.audio.decode_wav(audio_raw)
+    # sample_rate = audio.sample_rate
+    # audio = audio.audio.numpy()
+
+    # wav_arr_ch1.append(rfft(audio[:,0]))
+    # wav_arr_ch2.append(rfft(audio[:,1]))
+
+    # wav_arr_ch1, wav_arr_ch2, sample_rate
+
+
     # model.fit(data, labels, epochs=10, batch_size=32)
 
     return
